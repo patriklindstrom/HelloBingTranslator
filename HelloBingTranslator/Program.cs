@@ -18,23 +18,19 @@ namespace HelloBingTranslator
     {
         private static void Main(string[] args)
         {
-            string from = "en";
             AdmAccessToken admToken=null;
             string headerValue;
+
             //Get Client Id and Client Secret from https://datamarket.azure.com/developer/applications/
             //Refer obtaining AccessToken (http://msdn.microsoft.com/en-us/library/hh454950.aspx) 
-            AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator", "WEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjg=");
-            string text2 = "Use pixels to express measurements for padding and margins.";
-            string text;
-            Console.WriteLine("Enter Text to detect language:");
-            text = Console.ReadLine();
+            AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator",
+                "WEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjg=");
             try
             {
                 admToken = admAuth.GetAccessToken();
                 // Create a header with the access_token property of the returned token
                 headerValue = "Bearer " + admToken.access_token;
-
-                 from = DetectMethod(headerValue, text);
+                DetectMethod(headerValue);
             }
             catch (WebException e)
             {
@@ -49,19 +45,17 @@ namespace HelloBingTranslator
                 Console.ReadKey(true);
             }
 
-
-
-
-            
-            
+            string text = "Use pixels to express measurements for padding and margins.";
+            string from = "en";
             string to = "de";
-            string from2 = "en";
+
             string uri = "http://api.microsofttranslator.com/v2/Http.svc/Translate?text=" +
-                         System.Web.HttpUtility.UrlEncode(text2) + "&from=" + from2 + "&to=" + to;
+                         System.Web.HttpUtility.UrlEncode(text) + "&from=" + from + "&to=" + to;
             string authToken = "Bearer" + " " + admToken.access_token;
 
             HttpWebRequest httpWebRequest = (HttpWebRequest) WebRequest.Create(uri);
             httpWebRequest.Headers.Add("Authorization", authToken);
+
 
             WebResponse response = null;
             try
@@ -72,24 +66,23 @@ namespace HelloBingTranslator
                     System.Runtime.Serialization.DataContractSerializer dcs =
                         new System.Runtime.Serialization.DataContractSerializer(Type.GetType("System.String"));
                     string translation = (string) dcs.ReadObject(stream);
-                    Console.WriteLine("Translation for source text '{0}' from {1} to {2} is", text2, from2, "de");
+                    Console.WriteLine("Translation for source text '{0}' from {1} to {2} is", text, "en", "de");
                     Console.WriteLine(translation);
-                    Console.WriteLine("type and enter to exit");
-                    Console.ReadLine();
                 }
             }
-             catch
+            catch
             {
                 throw;
             }
         }
-        private static string DetectMethod(string authToken, string textToDetect)
-        {
-            string languageDetected ;
 
+        private static void DetectMethod(string authToken)
+        {
+            Console.WriteLine("Enter Text to detect language:");
+            string textToDetect = Console.ReadLine();
             //Keep appId parameter blank as we are sending access token in authorization header.
             string uri = "http://api.microsofttranslator.com/v2/Http.svc/Detect?text=" + textToDetect;
-            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
+            HttpWebRequest httpWebRequest = (HttpWebRequest) WebRequest.Create(uri);
             httpWebRequest.Headers.Add("Authorization", authToken);
             WebResponse response = null;
             try
@@ -97,8 +90,9 @@ namespace HelloBingTranslator
                 response = httpWebRequest.GetResponse();
                 using (Stream stream = response.GetResponseStream())
                 {
-                    System.Runtime.Serialization.DataContractSerializer dcs = new System.Runtime.Serialization.DataContractSerializer(Type.GetType("System.String"));
-                     languageDetected = (string)dcs.ReadObject(stream);
+                    System.Runtime.Serialization.DataContractSerializer dcs =
+                        new System.Runtime.Serialization.DataContractSerializer(Type.GetType("System.String"));
+                    string languageDetected = (string) dcs.ReadObject(stream);
                     Console.WriteLine(string.Format("Language detected:{0}", languageDetected));
                     Console.WriteLine("Press any key to continue...");
                     Console.ReadKey(true);
@@ -117,14 +111,14 @@ namespace HelloBingTranslator
                     response = null;
                 }
             }
-            return languageDetected;
         }
+
         private static void ProcessWebException(WebException e)
         {
             Console.WriteLine("{0}", e.ToString());
             // Obtain detailed error information
             string strResponse = string.Empty;
-            using (HttpWebResponse response = (HttpWebResponse)e.Response)
+            using (HttpWebResponse response = (HttpWebResponse) e.Response)
             {
                 using (Stream responseStream = response.GetResponseStream())
                 {
@@ -137,15 +131,19 @@ namespace HelloBingTranslator
             Console.WriteLine("Http status code={0}, error message={1}", e.Status, strResponse);
         }
     }
+
     [DataContract]
     public class AdmAccessToken
     {
         [DataMember]
         public string access_token { get; set; }
+
         [DataMember]
         public string token_type { get; set; }
+
         [DataMember]
         public string expires_in { get; set; }
+
         [DataMember]
         public string scope { get; set; }
     }
@@ -167,10 +165,14 @@ namespace HelloBingTranslator
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             //If clientid or client secret has special characters, encode before sending request
-            this.request = string.Format("grant_type=client_credentials&client_id={0}&client_secret={1}&scope=http://api.microsofttranslator.com", HttpUtility.UrlEncode(clientId), HttpUtility.UrlEncode(clientSecret));
+            this.request =
+                string.Format(
+                    "grant_type=client_credentials&client_id={0}&client_secret={1}&scope=http://api.microsofttranslator.com",
+                    HttpUtility.UrlEncode(clientId), HttpUtility.UrlEncode(clientSecret));
             this.token = HttpPost(DatamarketAccessUri, this.request);
             //renew the token every specfied minutes
-            accessTokenRenewer = new Timer(new TimerCallback(OnTokenExpiredCallback), this, TimeSpan.FromMinutes(RefreshTokenDuration), TimeSpan.FromMilliseconds(-1));
+            accessTokenRenewer = new Timer(new TimerCallback(OnTokenExpiredCallback), this,
+                TimeSpan.FromMinutes(RefreshTokenDuration), TimeSpan.FromMilliseconds(-1));
         }
 
         public AdmAccessToken GetAccessToken()
@@ -185,7 +187,8 @@ namespace HelloBingTranslator
             //swap the new token with old one
             //Note: the swap is thread unsafe
             this.token = newAccessToken;
-            Console.WriteLine(string.Format("Renewed token for user: {0} is: {1}", this.clientId, this.token.access_token));
+            Console.WriteLine(string.Format("Renewed token for user: {0} is: {1}", this.clientId,
+                this.token.access_token));
         }
 
         private void OnTokenExpiredCallback(object stateInfo)
@@ -206,7 +209,8 @@ namespace HelloBingTranslator
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(string.Format("Failed to reschedule the timer to renew access token. Details: {0}", ex.Message));
+                    Console.WriteLine(string.Format(
+                        "Failed to reschedule the timer to renew access token. Details: {0}", ex.Message));
                 }
             }
         }
@@ -226,12 +230,13 @@ namespace HelloBingTranslator
             }
             using (WebResponse webResponse = webRequest.GetResponse())
             {
-                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AdmAccessToken));
+                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof (AdmAccessToken));
                 //Get deserialized object from JSON stream
-                AdmAccessToken token = (AdmAccessToken)serializer.ReadObject(webResponse.GetResponseStream());
+                AdmAccessToken token = (AdmAccessToken) serializer.ReadObject(webResponse.GetResponseStream());
                 return token;
             }
         }
     }
 }
+
 
