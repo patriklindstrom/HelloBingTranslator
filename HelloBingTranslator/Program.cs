@@ -18,9 +18,12 @@ namespace HelloBingTranslator
     {
         private static void Main(string[] args)
         {
+            const string toLang = "es";
+            //const string toLang = "zh-CHS";
             AdmAccessToken admToken=null;
             string headerValue;
-
+            string fromLang="en";
+            string textToTranslate = "Use pixels to express measurements for padding and margins."; ;
             //Get Client Id and Client Secret from https://datamarket.azure.com/developer/applications/
             //Refer obtaining AccessToken (http://msdn.microsoft.com/en-us/library/hh454950.aspx) 
             AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator", "WEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjg=");
@@ -29,7 +32,9 @@ namespace HelloBingTranslator
                 admToken = admAuth.GetAccessToken();
                 // Create a header with the access_token property of the returned token
                 headerValue = "Bearer " + admToken.access_token;
-                DetectMethod(headerValue);
+                Console.WriteLine("Enter Text to detect language:");
+                 textToTranslate = Console.ReadLine();
+                 fromLang = DetectMethod(headerValue, textToTranslate);
             }
             catch (WebException e)
             {
@@ -44,12 +49,12 @@ namespace HelloBingTranslator
                 Console.ReadKey(true);
             }
 
-            string text = "Use pixels to express measurements for padding and margins.";
-            string from = "en";
+           
+            //string from = "en";
             string to = "de";
 
             string uri = "http://api.microsofttranslator.com/v2/Http.svc/Translate?text=" +
-                         System.Web.HttpUtility.UrlEncode(text) + "&from=" + from + "&to=" + to;
+                         System.Web.HttpUtility.UrlEncode(textToTranslate) + "&from=" + fromLang + "&to=" + toLang;
             string authToken = "Bearer" + " " + admToken.access_token;
 
             HttpWebRequest httpWebRequest = (HttpWebRequest) WebRequest.Create(uri);
@@ -65,7 +70,7 @@ namespace HelloBingTranslator
                     System.Runtime.Serialization.DataContractSerializer dcs =
                         new System.Runtime.Serialization.DataContractSerializer(Type.GetType("System.String"));
                     string translation = (string) dcs.ReadObject(stream);
-                    Console.WriteLine("Translation for source text '{0}' from {1} to {2} is", text, "en", "de");
+                    Console.WriteLine("Translation for source text '{0}' from {1} to {2} is", textToTranslate, fromLang, toLang);
                     Console.WriteLine(translation);
                 }
             }
@@ -85,14 +90,14 @@ namespace HelloBingTranslator
             Console.ReadLine();
         }
 
-        private static void DetectMethod(string authToken)
+        private static string DetectMethod(string authToken, string textToDetect)
         {
-            Console.WriteLine("Enter Text to detect language:");
-            string textToDetect = Console.ReadLine();
+            
             //Keep appId parameter blank as we are sending access token in authorization header.
             string uri = "http://api.microsofttranslator.com/v2/Http.svc/Detect?text=" + textToDetect;
             HttpWebRequest httpWebRequest = (HttpWebRequest) WebRequest.Create(uri);
             httpWebRequest.Headers.Add("Authorization", authToken);
+            string languageDetected = null;
             WebResponse response = null;
             try
             {
@@ -101,7 +106,7 @@ namespace HelloBingTranslator
                 {
                     System.Runtime.Serialization.DataContractSerializer dcs =
                         new System.Runtime.Serialization.DataContractSerializer(Type.GetType("System.String"));
-                    string languageDetected = (string) dcs.ReadObject(stream);
+                     languageDetected = (string) dcs.ReadObject(stream);
                     Console.WriteLine(string.Format("Language detected:{0}", languageDetected));
                     Console.WriteLine("Press any key to continue...");
                     Console.ReadKey(true);
@@ -120,6 +125,7 @@ namespace HelloBingTranslator
                     response = null;
                 }
             }
+            return languageDetected;
         }
 
         private static void ProcessWebException(WebException e)
