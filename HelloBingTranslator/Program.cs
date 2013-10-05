@@ -18,7 +18,7 @@ namespace HelloBingTranslator
     {
         private static void Main(string[] args)
         {
-            const string toLang = "es";
+            const string toLang = "de";
             //const string toLang = "zh-CHS";
             AdmAccessToken admToken=null;
             string headerValue;
