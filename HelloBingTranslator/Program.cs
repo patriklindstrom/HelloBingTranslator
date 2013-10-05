@@ -23,8 +23,7 @@ namespace HelloBingTranslator
 
             //Get Client Id and Client Secret from https://datamarket.azure.com/developer/applications/
             //Refer obtaining AccessToken (http://msdn.microsoft.com/en-us/library/hh454950.aspx) 
-            AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator",
-                "WEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjg=");
+            AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator", "WEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjg=");
             try
             {
                 admToken = admAuth.GetAccessToken();
@@ -70,10 +69,20 @@ namespace HelloBingTranslator
                     Console.WriteLine(translation);
                 }
             }
-            catch
+            catch (WebException e)
             {
-                throw;
+                ProcessWebException(e);
             }
+            finally
+            {
+                if (response != null)
+                {
+                    response.Close();
+                    response = null;
+                }
+            }
+            Console.WriteLine("Enter to exit");
+            Console.ReadLine();
         }
 
         private static void DetectMethod(string authToken)
@@ -99,9 +108,9 @@ namespace HelloBingTranslator
                 }
             }
 
-            catch
+            catch (WebException e)
             {
-                throw;
+                ProcessWebException(e);
             }
             finally
             {
