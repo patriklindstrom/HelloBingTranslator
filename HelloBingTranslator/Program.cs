@@ -26,7 +26,8 @@ namespace HelloBingTranslator
             string textToTranslate = "Use pixels to express measurements for padding and margins."; ;
             //Get Client Id and Client Secret from https://datamarket.azure.com/developer/applications/
             //Refer obtaining AccessToken (http://msdn.microsoft.com/en-us/library/hh454950.aspx) 
-            AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator", "WEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjg=");
+            //AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator", "WEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjh=");
+            AdmAuthentication admAuth = new AdmAuthentication("HelloBingTranslator", "vEG1nbJcFpZB/64CmgJv+Zx+EZeIWbUqj23LAf2bEjg=");
             try
             {
                 admToken = admAuth.GetAccessToken();
